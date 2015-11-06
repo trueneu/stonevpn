@@ -349,6 +349,13 @@ class StoneVPN:
         self.newca         = None
         self.test          = None
 
+    def replaceEnvPlaceholders(self, s):
+        regex = re.compile(r'\$ENV::([^\s/]+)')
+        match = re.match(regex, s)
+        if match is not None:
+            s = re.sub(regex, os.getenv(match.group(1)), s)
+        return s
+
     # Read certain vars from OpenSSL config file
     def readOpenSSLConf(self):
         if self.debug: print "DEBUG: parsing OpenSSL configuration file %s" % self.opensslconf
@@ -359,7 +366,7 @@ class StoneVPN:
         global countryName, stateOrProvinceName, localityName, organizationName, organizationalUnitName, defaultDays, prefixdir, indexdb, serialfile, default_bits, default_md
         # Check if certain sections in OpenSSL configfile are present, report if they're not
         try:
-            countryName = section['countryName_default']
+            countryName = self.replaceEnvPlaceholders(section['countryName_default'])
             if len(countryName) is 0:
                 print "Error: countryName_default is empty. Please edit %s first." % self.opensslconf
                 sys.exit()
@@ -367,7 +374,7 @@ class StoneVPN:
             print "Error: missing section 'countryName_default' in " + self.opensslconf
             sys.exit()
         try:
-            stateOrProvinceName = section['stateOrProvinceName_default']
+            stateOrProvinceName = self.replaceEnvPlaceholders(section['stateOrProvinceName_default'])
             if len(stateOrProvinceName) is 0:
                 print "Error: stateOrProvinceName_default is empty. Please edit %s first." % self.opensslconf
                 sys.exit()
@@ -375,7 +382,7 @@ class StoneVPN:
             print "Error: missing section 'stateOrProvinceName_default' in " + self.opensslconf
             sys.exit()
         try:
-            localityName = section['localityName_default']
+            localityName = self.replaceEnvPlaceholders(section['localityName_default'])
             if len(localityName) is 0:
                 print "Error: localityName_default is empty. Please edit %s first." % self.opensslconf
                 sys.exit()
@@ -383,7 +390,7 @@ class StoneVPN:
             print "Error: missing section 'localityName_default' in " + self.opensslconf
             sys.exit()
         try:
-            organizationName = section['0.organizationName_default']
+            organizationName = self.replaceEnvPlaceholders(section['0.organizationName_default'])
             if len(organizationName) is 0:
                 print "Error: 0.organizationName_default is empty. Please edit %s first." % self.opensslconf
                 sys.exit()
@@ -391,7 +398,7 @@ class StoneVPN:
             print "Error: missing section '0.organizationName_default' in " + self.opensslconf
             sys.exit()
         try:
-            organizationalUnitName = section['organizationalUnitName_default']
+            organizationalUnitName = self.replaceEnvPlaceholders(section['organizationalUnitName_default'])
             if len(organizationalUnitName) is 0:
                 print "Error: organizationalUnitName_default is empty. Please edit %s first." % self.opensslconf
                 sys.exit()
@@ -402,11 +409,11 @@ class StoneVPN:
         section=config[sectionname]
         defaultDays = section['default_days']
         prefixdir = section['dir']
-        indexdb = section['database'].replace('$dir', prefixdir)
-        serialfile = section['serial'].replace('$dir', prefixdir)
+        indexdb = self.replaceEnvPlaceholders(section['database'].replace('$dir', prefixdir))
+        serialfile = self.replaceEnvPlaceholders(section['serial'].replace('$dir', prefixdir))
         sectionname = 'req'
         section=config[sectionname]
-        default_bits =  section['default_bits']
+        default_bits =  self.replaceEnvPlaceholders(section['default_bits'])
         try:
             default_md = section['default_md']
         except KeyError:
